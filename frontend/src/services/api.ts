@@ -1,21 +1,32 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
   if (typeof window !== 'undefined' && window.location) {
     const { protocol, hostname, port } = window.location;
-    // Standalone Vite dev server (port 5173) connects to backend on port 5000
-    if (
-      port === '5173' &&
-      (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.'))
-    ) {
+    const isLocalhost =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.');
+
+    // Standalone local Vite dev server (port 5173) connects to backend on port 5000
+    if (isLocalhost && port === '5173') {
       return `${protocol}//${hostname}:5000/api`;
     }
+
+    // In production (e.g. smit-online.vercel.app), ALWAYS use relative /api
+    // and ignore any accidental localhost value configured in VITE_API_URL
+    if (!isLocalhost) {
+      const envUrl = import.meta.env.VITE_API_URL;
+      if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+        return envUrl;
+      }
+      return '/api';
+    }
   }
-  // In Vercel Services, vercel dev, and production, use the unified /api route
-  return '/api';
+
+  // Fallback
+  return import.meta.env.VITE_API_URL || '/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();

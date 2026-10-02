@@ -47,8 +47,14 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 // Root endpoint for API and browser redirect
 app.get('/', (req, res) => {
   if (req.accepts('html') && !req.xhr && !req.headers['x-requested-with']) {
-    const target = process.env.FRONTEND_URL || ENV.CLIENT_URL || '';
-    if (target && target.startsWith('http')) {
+    const target = process.env.FRONTEND_URL || process.env.CLIENT_URL || '';
+    // Only redirect if target is a live domain, NEVER redirect to localhost
+    if (
+      target &&
+      target.startsWith('http') &&
+      !target.includes('localhost') &&
+      !target.includes('127.0.0.1')
+    ) {
       return res.redirect(target);
     }
   }

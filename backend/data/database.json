@@ -120,6 +120,26 @@
       "is_active": true,
       "created_at": "2026-10-02T14:09:05.041Z",
       "updated_at": "2026-10-02T14:09:05.041Z"
+    },
+    {
+      "id": "72f73383-3a90-49ed-9afe-b61b65544b3e",
+      "role": "student",
+      "username": "alikhan2026",
+      "email": "alikhan2026@gmail.com",
+      "password_hash": "$2a$10$XpM15cDyZbExRmvk69CYV.YC4pduWalcm1GS/PnJ38UPIX8L3mpoK",
+      "is_active": true,
+      "created_at": "2026-10-02T14:38:23.753Z",
+      "updated_at": "2026-10-02T14:38:23.753Z"
+    },
+    {
+      "id": "a7e9b33f-2fd6-4fa5-960d-8f2427c5c8a6",
+      "role": "student",
+      "username": "emma_7052",
+      "email": "emma.7052@student.webcraft.edu",
+      "password_hash": "$2a$10$5Pm/O3qmvT8tIzkLJlfT2ODr6tzDtMRFDj3i6HkPMyClTI9ILL4iu",
+      "is_active": true,
+      "created_at": "2026-10-02T14:52:47.170Z",
+      "updated_at": "2026-10-02T14:52:47.170Z"
     }
   ],
   "student_profiles": [
@@ -261,6 +281,32 @@
       "show_on_public_directory": true,
       "created_at": "2026-10-02T14:09:05.041Z",
       "updated_at": "2026-10-02T14:09:05.041Z"
+    },
+    {
+      "id": "c9421feb-9f5c-40e7-a052-3ca4e2437d77",
+      "user_id": "72f73383-3a90-49ed-9afe-b61b65544b3e",
+      "full_name": "Ali Khan",
+      "username": "alikhan2026",
+      "email": "alikhan2026@gmail.com",
+      "mobile_number": "03009988776",
+      "roll_number": "WD-2026-999",
+      "avatar_url": "https://api.dicebear.com/7.x/initials/svg?seed=Ali%20Khan",
+      "show_on_public_directory": true,
+      "created_at": "2026-10-02T14:38:23.753Z",
+      "updated_at": "2026-10-02T14:38:23.753Z"
+    },
+    {
+      "id": "9106525e-57ec-4ec9-b1dc-df7c1f4988af",
+      "user_id": "a7e9b33f-2fd6-4fa5-960d-8f2427c5c8a6",
+      "full_name": "Emma Watson",
+      "username": "emma_7052",
+      "email": "emma.7052@student.webcraft.edu",
+      "mobile_number": "+1 (555) 987-6543",
+      "roll_number": "WD-2026-9957",
+      "avatar_url": "https://api.dicebear.com/7.x/initials/svg?seed=Emma%20Watson",
+      "show_on_public_directory": true,
+      "created_at": "2026-10-02T14:52:47.170Z",
+      "updated_at": "2026-10-02T14:52:47.170Z"
     }
   ],
   "teacher_profiles": [
@@ -1066,31 +1112,31 @@
       "id": "f6601eae-73db-42f5-a007-caf998ea1986",
       "student_id": "student-uuid-001",
       "date": "2026-10-01",
-      "class_day": "thursday",
+      "class_day": "monday",
       "status": "present",
       "marked_by": "teacher-admin-uuid-001",
       "created_at": "2026-09-30T09:17:41.367Z",
-      "updated_at": "2026-09-30T18:03:53.000Z"
+      "updated_at": "2026-10-02T14:52:47.050Z"
     },
     {
       "id": "c96441c0-bcc4-4511-891d-833cd45dd601",
       "student_id": "student-uuid-002",
       "date": "2026-10-01",
-      "class_day": "thursday",
+      "class_day": "monday",
       "status": "present",
       "marked_by": "teacher-admin-uuid-001",
       "created_at": "2026-09-30T09:17:41.369Z",
-      "updated_at": "2026-09-30T18:03:53.004Z"
+      "updated_at": "2026-10-02T14:52:47.051Z"
     },
     {
       "id": "900716f3-79b5-4518-9b53-c3a7d7a7a8a1",
       "student_id": "student-uuid-003",
       "date": "2026-10-01",
-      "class_day": "thursday",
-      "status": "present",
+      "class_day": "monday",
+      "status": "absent",
       "marked_by": "teacher-admin-uuid-001",
       "created_at": "2026-09-30T09:17:41.371Z",
-      "updated_at": "2026-09-30T18:03:53.008Z"
+      "updated_at": "2026-10-02T14:52:47.051Z"
     },
     {
       "id": "2d2bfea9-387a-4e77-bd48-5cf8bfebeec3",
@@ -1612,7 +1658,7 @@
       "completed": true,
       "progress_seconds": 500,
       "completed_at": "2026-02-10T14:20:00.000Z",
-      "updated_at": "2026-09-30T09:17:41.342Z"
+      "updated_at": "2026-10-02T14:52:46.977Z"
     },
     {
       "id": "576b8f6e-f234-429f-8a28-092968de76d4",
@@ -1796,9 +1842,9 @@
       "video_id": "video-1beecabe",
       "watched": true,
       "completed": true,
-      "progress_seconds": 10,
-      "updated_at": "2026-09-30T15:17:44.378Z",
-      "completed_at": "2026-09-30T15:17:44.376Z"
+      "progress_seconds": 0,
+      "updated_at": "2026-10-02T15:11:34.671Z",
+      "completed_at": "2026-10-02T15:11:34.669Z"
     },
     {
       "id": "d4d13abd-2db4-4d6f-a40a-cc40496349a6",
@@ -1820,6 +1866,61 @@
     }
   ],
   "notifications": [
+    {
+      "id": "08a7d9db-e37c-494d-a6d9-0d61fac9eeff",
+      "user_id": "a7e9b33f-2fd6-4fa5-960d-8f2427c5c8a6",
+      "type": "system",
+      "title": "Welcome to SMIT Web Class!",
+      "message": "Hello Emma Watson, your student account is active. Start exploring your courses today!",
+      "reference_type": "course",
+      "reference_id": "course-html",
+      "is_read": false,
+      "created_at": "2026-10-02T14:52:47.170Z"
+    },
+    {
+      "id": "196783a0-b4c4-4bbf-bd42-78585d94183a",
+      "user_id": "student-uuid-003",
+      "type": "attendance_marked",
+      "title": "Attendance Updated",
+      "message": "Your attendance for MONDAY, 2026-10-01 (4:00 PM - 6:00 PM) has been marked as Absent.",
+      "reference_type": "attendance",
+      "reference_id": "2026-10-01",
+      "is_read": false,
+      "created_at": "2026-10-02T14:52:47.051Z"
+    },
+    {
+      "id": "188a4065-2273-4f28-8911-20a1674a302c",
+      "user_id": "student-uuid-002",
+      "type": "attendance_marked",
+      "title": "Attendance Updated",
+      "message": "Your attendance for MONDAY, 2026-10-01 (4:00 PM - 6:00 PM) has been marked as Present.",
+      "reference_type": "attendance",
+      "reference_id": "2026-10-01",
+      "is_read": false,
+      "created_at": "2026-10-02T14:52:47.051Z"
+    },
+    {
+      "id": "cb6aeb97-323f-430a-9724-2ba1abbe0e80",
+      "user_id": "student-uuid-001",
+      "type": "attendance_marked",
+      "title": "Attendance Updated",
+      "message": "Your attendance for MONDAY, 2026-10-01 (4:00 PM - 6:00 PM) has been marked as Present.",
+      "reference_type": "attendance",
+      "reference_id": "2026-10-01",
+      "is_read": false,
+      "created_at": "2026-10-02T14:52:47.050Z"
+    },
+    {
+      "id": "65a6257c-444f-4c71-aee7-9da5a94575ee",
+      "user_id": "72f73383-3a90-49ed-9afe-b61b65544b3e",
+      "type": "system",
+      "title": "Welcome to SMIT Web Class!",
+      "message": "Hello Ali Khan, your student account is active. Start exploring your courses today!",
+      "reference_type": "course",
+      "reference_id": "course-html",
+      "is_read": false,
+      "created_at": "2026-10-02T14:38:23.754Z"
+    },
     {
       "id": "2501d2d1-2b61-4a03-a105-0bee4df32de0",
       "user_id": "794b8a68-051c-4bd7-be38-10617c931254",
@@ -2871,9 +2972,59 @@
       "expires_at": "2026-10-02T10:55:04.439Z",
       "used": true,
       "created_at": "2026-10-02T10:45:04.440Z"
+    },
+    {
+      "id": "aebe549a-1127-4391-af44-b5cf38411080",
+      "user_id": "197c5ff8-03ce-4236-a332-6c0e66006e41",
+      "email": "malikabubakkar@gmail.com",
+      "otp": "26573",
+      "token": "26573",
+      "expires_at": "2026-10-02T15:22:50.641Z",
+      "used": false,
+      "created_at": "2026-10-02T15:12:50.641Z"
     }
   ],
   "activity_logs": [
+    {
+      "id": "a07e2f2d-9845-47c7-94d4-ba9065cdb363",
+      "actor_user_id": "197c5ff8-03ce-4236-a332-6c0e66006e41",
+      "event_type": "LESSON_COMPLETED",
+      "title": "Student Completed Lesson",
+      "description": "Malik Abubakkar completed \"github account\".",
+      "reference_type": "video",
+      "reference_id": "video-1beecabe",
+      "created_at": "2026-10-02T15:11:34.671Z"
+    },
+    {
+      "id": "eb89231d-5ccf-4bc8-845b-9cdee5c89a09",
+      "actor_user_id": "a7e9b33f-2fd6-4fa5-960d-8f2427c5c8a6",
+      "event_type": "STUDENT_REGISTERED",
+      "title": "New Student Enrolled",
+      "description": "Emma Watson joined the class with roll WD-2026-9957.",
+      "reference_type": "student",
+      "reference_id": "a7e9b33f-2fd6-4fa5-960d-8f2427c5c8a6",
+      "created_at": "2026-10-02T14:52:47.170Z"
+    },
+    {
+      "id": "18d4cac7-1637-47f6-b731-b3183af12929",
+      "actor_user_id": "teacher-admin-uuid-001",
+      "event_type": "ATTENDANCE_MARKED",
+      "title": "Class Attendance Recorded",
+      "description": "Recorded attendance for 3 students on 2026-10-01 (4:00 PM - 6:00 PM).",
+      "reference_type": "attendance",
+      "reference_id": "2026-10-01",
+      "created_at": "2026-10-02T14:52:47.051Z"
+    },
+    {
+      "id": "84c7064e-58f6-4ecc-926f-188682f42c20",
+      "actor_user_id": "72f73383-3a90-49ed-9afe-b61b65544b3e",
+      "event_type": "STUDENT_REGISTERED",
+      "title": "New Student Enrolled",
+      "description": "Ali Khan joined the class with roll WD-2026-999.",
+      "reference_type": "student",
+      "reference_id": "72f73383-3a90-49ed-9afe-b61b65544b3e",
+      "created_at": "2026-10-02T14:38:23.754Z"
+    },
     {
       "id": "68823104-e362-4bdc-8712-b510b02ecc1c",
       "actor_user_id": "794b8a68-051c-4bd7-be38-10617c931254",

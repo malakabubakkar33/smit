@@ -37,8 +37,20 @@ export const getMediaUrl = (url?: string | null): string => {
     }
   }
 
-  const backendBase = import.meta.env.VITE_API_URL
+  let backendBase = import.meta.env.VITE_API_URL
     ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
     : '';
+
+  if (typeof window !== 'undefined' && window.location) {
+    const isLocal =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.startsWith('192.168.') ||
+      window.location.hostname.startsWith('10.');
+    if (!isLocal && backendBase.includes('localhost')) {
+      backendBase = '';
+    }
+  }
+
   return `${backendBase}${cleanPath}`;
 };
