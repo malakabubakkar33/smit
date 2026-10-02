@@ -152,7 +152,19 @@ export class AssignmentController {
       let fileType = 'application/octet-stream';
 
       if (file) {
-        filePath = `/uploads/assignments/${path.basename(file.path)}`;
+        if (file.buffer) {
+          const { StorageService } = await import('../services/storageService.js');
+          const destName = `submission-${studentId}-${Date.now()}-${file.originalname}`;
+          const uploadRes = await StorageService.uploadBuffer(
+            'assignments',
+            file.buffer,
+            destName,
+            file.mimetype || 'application/octet-stream'
+          );
+          filePath = uploadRes.url;
+        } else if (file.path) {
+          filePath = `/uploads/assignments/${path.basename(file.path)}`;
+        }
         fileName = file.originalname;
         fileSize = file.size;
         fileType = file.mimetype;

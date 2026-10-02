@@ -36,6 +36,8 @@ export const getMediaUrl = (url?: string | null): string => {
     }
   }
 
-  const backendBase = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+  const backendBase = import.meta.env.VITE_API_URL
+    ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+    : '';
   return `${backendBase}${cleanPath}`;
 };

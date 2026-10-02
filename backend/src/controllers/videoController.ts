@@ -31,12 +31,19 @@ export class VideoController {
       }
 
       const destinationPath = `lessons/${Date.now()}-${req.file.originalname}`;
-      const uploadResult = await StorageService.uploadFile(
-        'course-videos',
-        req.file.path,
-        destinationPath,
-        req.file.mimetype
-      );
+      const uploadResult = req.file.buffer
+        ? await StorageService.uploadBuffer(
+            'course-videos',
+            req.file.buffer,
+            destinationPath,
+            req.file.mimetype
+          )
+        : await StorageService.uploadFile(
+            'course-videos',
+            req.file.path,
+            destinationPath,
+            req.file.mimetype
+          );
 
       res.json({
         success: true,
