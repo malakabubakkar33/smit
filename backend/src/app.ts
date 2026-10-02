@@ -48,11 +48,11 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 app.use('/api', apiRoutes);
 app.use('/', apiRoutes);
 
-// Catch-all 404 for API
-app.use('/api/*', (req, res) => {
+// Catch-all 404 handler for all unmatched routes
+app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: `API endpoint ${req.originalUrl} not found`,
+    message: `API endpoint ${req.method} ${req.originalUrl} not found`,
   });
 });
 
