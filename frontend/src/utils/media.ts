@@ -24,13 +24,14 @@ export const getMediaUrl = (url?: string | null): string => {
 
   // In browser, dynamically resolve backend host
   if (typeof window !== 'undefined' && window.location) {
-    const { protocol, hostname } = window.location;
-    // Local dev: express backend runs on port 5000
+    const { protocol, hostname, port } = window.location;
+    // Local standalone dev (port 5173): express backend runs on port 5000
     if (
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname.startsWith('192.168.') ||
-      hostname.startsWith('10.')
+      port === '5173' &&
+      (hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.'))
     ) {
       return `${protocol}//${hostname}:5000${cleanPath}`;
     }

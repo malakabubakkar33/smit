@@ -1,14 +1,21 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
   if (typeof window !== 'undefined' && window.location) {
-    const { protocol, hostname } = window.location;
-    // In local development, align API host with browser host to prevent network/CORS mismatch
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+    const { protocol, hostname, port } = window.location;
+    // Standalone Vite dev server (port 5173) connects to backend on port 5000
+    if (
+      port === '5173' &&
+      (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.'))
+    ) {
       return `${protocol}//${hostname}:5000/api`;
     }
   }
-  return import.meta.env.VITE_API_URL || '/api';
+  // In Vercel Services, vercel dev, and production, use the unified /api route
+  return '/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
