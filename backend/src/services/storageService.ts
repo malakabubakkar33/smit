@@ -5,11 +5,11 @@ import { ENV } from '../config/env.js';
 
 export class StorageService {
   /**
-   * Upload file to Supabase Storage or fallback to local uploads server
+   * Upload Buffer directly to Supabase Storage with local fallback
    */
-  public static async uploadFile(
-    bucket: 'avatars' | 'course-thumbnails' | 'course-videos',
-    localFilePath: string,
+  public static async uploadBuffer(
+    bucket: 'avatars' | 'course-thumbnails' | 'course-videos' | 'assignments',
+    buffer: Buffer,
     destinationPath: string,
     mimeType: string
   ): Promise<{ url: string; storagePath: string }> {
@@ -17,42 +17,80 @@ export class StorageService {
 
     if (supabase) {
       try {
-        const fileBuffer = fs.readFileSync(localFilePath);
         const { data, error } = await supabase.storage
           .from(bucket)
-          .upload(destinationPath, fileBuffer, {
+          .upload(destinationPath, buffer, {
             contentType: mimeType,
             upsert: true,
           });
 
-        if (error) {
-          console.warn(`[StorageService] Supabase upload failed for ${destinationPath}:`, error.message);
-          // Fall back to local path
-        } else if (data) {
+        if (!error && data) {
           const { data: publicUrlData } = supabase.storage
             .from(bucket)
             .getPublicUrl(destinationPath);
 
+          console.log(`[StorageService] Uploaded to Supabase bucket "${bucket}": ${publicUrlData.publicUrl}`);
           return {
             url: publicUrlData.publicUrl,
             storagePath: `${bucket}/${destinationPath}`,
           };
+        }
+
+        if (error) {
+          console.warn(`[StorageService] Supabase upload failed for ${destinationPath}:`, error.message);
         }
       } catch (err) {
         console.error('[StorageService] Error during Supabase upload:', err);
       }
     }
 
-    // Local fallback URL served via Express static
-    const fileName = path.basename(localFilePath);
-    let sub = 'thumbnails';
-    if (bucket === 'course-videos') sub = 'videos';
-    if (bucket === 'avatars') sub = 'avatars';
+    // Local disk fallback (if uploads folder is writable)
+    try {
+      const isVercel = Boolean(process.env.VERCEL);
+      const rootDir = isVercel ? '/tmp/uploads' : path.resolve(process.cwd(), 'uploads');
+      const dirPath = path.join(rootDir, bucket);
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+      const localFilePath = path.join(dirPath, destinationPath);
+      fs.writeFileSync(localFilePath, buffer);
+      
+      const localUrl = `/uploads/${bucket}/${destinationPath}`;
+      return {
+        url: localUrl,
+        storagePath: `local/${bucket}/${destinationPath}`,
+      };
+    } catch (localErr) {
+      console.warn('[StorageService] Local disk write fallback failed, using inline Data URI:', localErr);
+    }
 
-    const localUrl = `http://localhost:${ENV.PORT}/uploads/${sub}/${fileName}`;
+    // Final resilient fallback: Base64 Data URI so the image NEVER fails
+    const base64 = buffer.toString('base64');
     return {
-      url: localUrl,
-      storagePath: `local/${bucket}/${fileName}`,
+      url: `data:${mimeType};base64,${base64}`,
+      storagePath: `inline/${bucket}/${destinationPath}`,
     };
+  }
+
+  /**
+   * Upload file from local filesystem path
+   */
+  public static async uploadFile(
+    bucket: 'avatars' | 'course-thumbnails' | 'course-videos' | 'assignments',
+    localFilePath: string,
+    destinationPath: string,
+    mimeType: string
+  ): Promise<{ url: string; storagePath: string }> {
+    try {
+      const buffer = fs.readFileSync(localFilePath);
+      return this.uploadBuffer(bucket, buffer, destinationPath, mimeType);
+    } catch (err: any) {
+      console.error('[StorageService] Failed to read local file for upload:', err);
+      const fileName = path.basename(localFilePath);
+      return {
+        url: `/uploads/${bucket}/${fileName}`,
+        storagePath: `local/${bucket}/${fileName}`,
+      };
+    }
   }
 }

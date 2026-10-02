@@ -100,6 +100,16 @@
       "is_active": true,
       "created_at": "2026-09-30T18:22:00.156Z",
       "updated_at": "2026-09-30T18:22:00.156Z"
+    },
+    {
+      "id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
+      "role": "student",
+      "username": "teststudent_1790942252643",
+      "email": "test_1790942252643@student.webcraft.edu",
+      "password_hash": "$2a$10$79Al2Xzb9cWCXJNXOELgP.pVPHMLJ7vKiCKEG.mfQ7iqPEJN6SOa6",
+      "is_active": true,
+      "created_at": "2026-10-02T11:57:35.299Z",
+      "updated_at": "2026-10-02T11:57:35.299Z"
     }
   ],
   "student_profiles": [
@@ -215,6 +225,19 @@
       "show_on_public_directory": true,
       "created_at": "2026-09-30T18:22:00.156Z",
       "updated_at": "2026-09-30T18:22:00.605Z"
+    },
+    {
+      "id": "4f68e0f5-9881-4944-ac2b-f798dc4a1997",
+      "user_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
+      "full_name": "Test Account",
+      "username": "teststudent_1790942252643",
+      "email": "test_1790942252643@student.webcraft.edu",
+      "mobile_number": "+92 300 1234567",
+      "roll_number": "WD-2026-429",
+      "avatar_url": "https://vejdcilgwgiscaspbfho.supabase.co/storage/v1/object/public/avatars/avatar-test.png",
+      "show_on_public_directory": true,
+      "created_at": "2026-10-02T11:57:35.299Z",
+      "updated_at": "2026-10-02T11:57:35.299Z"
     }
   ],
   "teacher_profiles": [
@@ -1775,6 +1798,17 @@
   ],
   "notifications": [
     {
+      "id": "8c09bebf-1296-4375-b365-99b770d6d74c",
+      "user_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
+      "type": "system",
+      "title": "Welcome to SMIT Web Class!",
+      "message": "Hello Test Account, your student account is active. Start exploring your courses today!",
+      "reference_type": "course",
+      "reference_id": "course-html",
+      "is_read": false,
+      "created_at": "2026-10-02T11:57:35.300Z"
+    },
+    {
       "id": "2f9080ca-a2b4-4dcd-a14b-17e4950721b2",
       "user_id": "eff2487e-0836-408d-ad26-c28b6d347e13",
       "type": "attendance_marked",
@@ -2806,6 +2840,16 @@
     }
   ],
   "activity_logs": [
+    {
+      "id": "2e43428a-5409-4a76-8d45-081ea2852d48",
+      "actor_user_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
+      "event_type": "STUDENT_REGISTERED",
+      "title": "New Student Enrolled",
+      "description": "Test Account joined the class with roll WD-2026-429.",
+      "reference_type": "student",
+      "reference_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
+      "created_at": "2026-10-02T11:57:35.304Z"
+    },
     {
       "id": "37279d2c-da9b-45b2-934c-1b3b6e35ffb3",
       "actor_user_id": "7a966b09-989a-41c8-97e1-98dddc778877",

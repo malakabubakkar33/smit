@@ -92,18 +92,32 @@ export class AuthController {
 
   public static async uploadAvatar(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.file) {
+      if (!req.file || !req.file.buffer) {
         res.status(400).json({ success: false, message: 'Please select an image file to upload.' });
         return;
       }
-      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+      const { v4: uuidv4 } = await import('uuid');
+      const path = (await import('path')).default;
+      const { StorageService } = await import('../services/storageService.js');
+
+      const ext = path.extname(req.file.originalname) || '.png';
+      const destinationPath = `avatar-${uuidv4()}${ext}`;
+
+      const { url } = await StorageService.uploadBuffer(
+        'avatars',
+        req.file.buffer,
+        destinationPath,
+        req.file.mimetype || 'image/png'
+      );
+
       res.json({
         success: true,
         message: 'Image uploaded successfully from your device',
-        data: { avatarUrl },
+        data: { avatarUrl: url },
       });
     } catch (err: any) {
-      res.status(500).json({ success: false, message: err.message });
+      console.error('[UploadAvatar Error]:', err);
+      res.status(500).json({ success: false, message: err.message || 'Avatar upload failed' });
     }
   }
 

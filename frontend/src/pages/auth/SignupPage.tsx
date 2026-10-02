@@ -240,11 +240,13 @@ export const SignupPage: React.FC = () => {
                       <Camera className="w-4 h-4" />
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/png,image/jpeg,image/webp,image/jpg"
                         className="hidden"
                         onChange={async (e) => {
                           if (e.target.files && e.target.files[0]) {
                             const file = e.target.files[0];
+                            const localPreview = URL.createObjectURL(file);
+                            setFormData((prev) => ({ ...prev, avatarUrl: localPreview }));
                             setIsUploadingPhoto(true);
                             setPhotoUploadError(null);
                             try {
@@ -252,10 +254,17 @@ export const SignupPage: React.FC = () => {
                               uploadData.append('avatar', file);
                               const res = await api.uploadAvatar(uploadData);
                               if (res.data?.success && res.data.data?.avatarUrl) {
-                                setFormData({ ...formData, avatarUrl: res.data.data.avatarUrl });
+                                setFormData((prev) => ({ ...prev, avatarUrl: res.data.data.avatarUrl }));
                               }
                             } catch (err: any) {
-                              setPhotoUploadError(err.response?.data?.message || 'Failed to upload photo');
+                              console.warn('Avatar upload fallback to DataURI:', err);
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                if (typeof reader.result === 'string') {
+                                  setFormData((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+                                }
+                              };
+                              reader.readAsDataURL(file);
                             } finally {
                               setIsUploadingPhoto(false);
                             }
@@ -282,12 +291,14 @@ export const SignupPage: React.FC = () => {
                     </span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/webp,image/jpg"
                       disabled={isUploadingPhoto}
                       className="hidden"
                       onChange={async (e) => {
                         if (e.target.files && e.target.files[0]) {
                           const file = e.target.files[0];
+                          const localPreview = URL.createObjectURL(file);
+                          setFormData((prev) => ({ ...prev, avatarUrl: localPreview }));
                           setIsUploadingPhoto(true);
                           setPhotoUploadError(null);
                           try {
@@ -295,10 +306,17 @@ export const SignupPage: React.FC = () => {
                             uploadData.append('avatar', file);
                             const res = await api.uploadAvatar(uploadData);
                             if (res.data?.success && res.data.data?.avatarUrl) {
-                              setFormData({ ...formData, avatarUrl: res.data.data.avatarUrl });
+                              setFormData((prev) => ({ ...prev, avatarUrl: res.data.data.avatarUrl }));
                             }
                           } catch (err: any) {
-                            setPhotoUploadError(err.response?.data?.message || 'Failed to upload photo');
+                            console.warn('Avatar upload fallback to DataURI:', err);
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              if (typeof reader.result === 'string') {
+                                setFormData((prev) => ({ ...prev, avatarUrl: reader.result as string }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
                           } finally {
                             setIsUploadingPhoto(false);
                           }

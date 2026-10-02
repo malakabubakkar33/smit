@@ -44,8 +44,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve local static uploaded media files
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
-// Mount API Routes
+// Mount API Routes (Both /api and / to support all serverless reverse proxy environments)
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // Catch-all 404 for API
 app.use('/api/*', (req, res) => {

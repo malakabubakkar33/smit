@@ -1,34 +1,23 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 
-const UPLOAD_ROOT = path.resolve(process.cwd(), 'uploads');
-['videos', 'avatars', 'thumbnails', 'assignments'].forEach(subDir => {
-  const dirPath = path.join(UPLOAD_ROOT, subDir);
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-});
+const isVercel = Boolean(process.env.VERCEL);
+const UPLOAD_ROOT = isVercel ? '/tmp/uploads' : path.resolve(process.cwd(), 'uploads');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let sub = 'thumbnails';
-    if (file.mimetype.startsWith('video/')) {
-      sub = 'videos';
-    } else if (req.path.includes('avatar') || file.fieldname === 'avatar') {
-      sub = 'avatars';
-    } else if (req.path.includes('assignment') || file.fieldname === 'assignment') {
-      sub = 'assignments';
+try {
+  ['videos', 'avatars', 'thumbnails', 'assignments'].forEach(subDir => {
+    const dirPath = path.join(UPLOAD_ROOT, subDir);
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
     }
-    cb(null, path.join(UPLOAD_ROOT, sub));
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const safeName = `${uuidv4()}${ext}`;
-    cb(null, safeName);
-  },
-});
+  });
+} catch (e) {
+  // Ignore filesystem restriction on read-only environments
+}
+
+// Memory storage to eliminate all disk-write failures on Vercel serverless
+const memoryStorage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedMimes = [
@@ -52,9 +41,9 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
 };
 
 export const upload = multer({
-  storage,
+  storage: memoryStorage,
   limits: {
-    fileSize: 250 * 1024 * 1024, // 250MB limit
+    fileSize: 100 * 1024 * 1024, // 100MB limit
   },
   fileFilter,
 });
@@ -78,9 +67,9 @@ const assignmentFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
 };
 
 export const uploadAssignment = multer({
-  storage,
+  storage: memoryStorage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit for assignment submissions
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: assignmentFilter,
 });
