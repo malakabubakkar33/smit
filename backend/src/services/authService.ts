@@ -43,6 +43,11 @@ export class AuthService {
            u.email.toLowerCase() === trimmedId.toLowerCase()
     );
 
+    // 1b. Allow 'teacher' or 'admin' alias to match teacher account
+    if (!user && (trimmedId.toLowerCase() === 'teacher' || trimmedId.toLowerCase() === 'admin')) {
+      user = db.users.find(u => u.role === 'teacher');
+    }
+
     // 2. If not found, match on student roll number, profile email, or profile username
     if (!user) {
       const studentProfile = db.student_profiles.find(
