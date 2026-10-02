@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { AuthService } from '../services/authService.js';
+import { AuthService, StudentSignupInput } from '../services/authService.js';
 import { StorageService } from '../services/storageService.js';
 import { loginSchema, signupSchema, changePasswordSchema, updateProfileSchema } from '../validators/authValidator.js';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware.js';
@@ -23,7 +23,7 @@ export class AuthController {
 
   public static async signup(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const validated = signupSchema.parse(req.body);
+      const validated = signupSchema.parse(req.body) as unknown as StudentSignupInput;
       const result = await AuthService.registerStudent(validated);
       res.status(201).json({
         success: true,
