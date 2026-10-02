@@ -110,6 +110,16 @@
       "is_active": true,
       "created_at": "2026-10-02T11:57:35.299Z",
       "updated_at": "2026-10-02T11:57:35.299Z"
+    },
+    {
+      "id": "794b8a68-051c-4bd7-be38-10617c931254",
+      "role": "student",
+      "username": "testuser99",
+      "email": "testuser99@example.com",
+      "password_hash": "$2a$10$NT.AGfHPcsgxL30Ytw1HxO7iWpzGGbxSYZJGIxFOWtrG4ePdLvk9y",
+      "is_active": true,
+      "created_at": "2026-10-02T14:09:05.041Z",
+      "updated_at": "2026-10-02T14:09:05.041Z"
     }
   ],
   "student_profiles": [
@@ -238,6 +248,19 @@
       "show_on_public_directory": true,
       "created_at": "2026-10-02T11:57:35.299Z",
       "updated_at": "2026-10-02T11:57:35.299Z"
+    },
+    {
+      "id": "a16c58cc-9f17-431e-a82f-9a8fedee7409",
+      "user_id": "794b8a68-051c-4bd7-be38-10617c931254",
+      "full_name": "Test User",
+      "username": "testuser99",
+      "email": "testuser99@example.com",
+      "mobile_number": "03001234567",
+      "roll_number": "TEST-999",
+      "avatar_url": "https://api.dicebear.com/7.x/initials/svg?seed=Test%20User",
+      "show_on_public_directory": true,
+      "created_at": "2026-10-02T14:09:05.041Z",
+      "updated_at": "2026-10-02T14:09:05.041Z"
     }
   ],
   "teacher_profiles": [
@@ -1798,6 +1821,17 @@
   ],
   "notifications": [
     {
+      "id": "2501d2d1-2b61-4a03-a105-0bee4df32de0",
+      "user_id": "794b8a68-051c-4bd7-be38-10617c931254",
+      "type": "system",
+      "title": "Welcome to SMIT Web Class!",
+      "message": "Hello Test User, your student account is active. Start exploring your courses today!",
+      "reference_type": "course",
+      "reference_id": "course-html",
+      "is_read": false,
+      "created_at": "2026-10-02T14:09:05.041Z"
+    },
+    {
       "id": "8c09bebf-1296-4375-b365-99b770d6d74c",
       "user_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",
       "type": "system",
@@ -2840,6 +2874,16 @@
     }
   ],
   "activity_logs": [
+    {
+      "id": "68823104-e362-4bdc-8712-b510b02ecc1c",
+      "actor_user_id": "794b8a68-051c-4bd7-be38-10617c931254",
+      "event_type": "STUDENT_REGISTERED",
+      "title": "New Student Enrolled",
+      "description": "Test User joined the class with roll TEST-999.",
+      "reference_type": "student",
+      "reference_id": "794b8a68-051c-4bd7-be38-10617c931254",
+      "created_at": "2026-10-02T14:09:05.041Z"
+    },
     {
       "id": "2e43428a-5409-4a76-8d45-081ea2852d48",
       "actor_user_id": "cc04b4e7-af60-4c7c-93f7-46496b50bfcb",

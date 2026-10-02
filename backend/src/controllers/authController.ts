@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { AuthService } from '../services/authService.js';
+import { StorageService } from '../services/storageService.js';
 import { loginSchema, signupSchema, changePasswordSchema, updateProfileSchema } from '../validators/authValidator.js';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware.js';
 
@@ -96,10 +99,6 @@ export class AuthController {
         res.status(400).json({ success: false, message: 'Please select an image file to upload.' });
         return;
       }
-      const { v4: uuidv4 } = await import('uuid');
-      const path = (await import('path')).default;
-      const { StorageService } = await import('../services/storageService.js');
-
       const ext = path.extname(req.file.originalname) || '.png';
       const destinationPath = `avatar-${uuidv4()}${ext}`;
 

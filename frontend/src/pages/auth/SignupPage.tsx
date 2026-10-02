@@ -72,11 +72,26 @@ export const SignupPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await signup(formData);
+      const submissionData = { ...formData };
+      // Fallback clean Dicebear avatar if avatarUrl is a temporary local blob preview
+      if (submissionData.avatarUrl && submissionData.avatarUrl.startsWith('blob:')) {
+        submissionData.avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(submissionData.fullName || 'Student')}`;
+      }
+
+      await signup(submissionData);
       success('Student account created successfully! Welcome to the classroom.', 'Registration Complete');
       navigate('/student/dashboard');
     } catch (err: any) {
-      error(err.response?.data?.message || err.message || 'Signup failed');
+      const serverMsg =
+        typeof err.response?.data?.message === 'string'
+          ? err.response.data.message
+          : err.response?.data?.error ||
+            (Array.isArray(err.response?.data?.errors)
+              ? err.response.data.errors.map((e: any) => e.message).join(', ')
+              : null) ||
+            err.message ||
+            'Signup failed. Please check your information and try again.';
+      error(serverMsg);
     } finally {
       setIsLoading(false);
     }
