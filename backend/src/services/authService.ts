@@ -1,0 +1,468 @@
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import { db } from '../config/database.js';
+import { User, StudentProfile, TeacherProfile, PasswordReset } from '../models/types.js';
+import { signToken, TokenPayload } from '../utils/jwt.js';
+import { NotificationService } from './notificationService.js';
+import { EmailService } from './emailService.js';
+
+export interface StudentSignupInput {
+  fullName: string;
+  username: string;
+  mobileNumber: string;
+  rollNumber: string;
+  email: string;
+  avatarUrl?: string;
+  password: string;
+}
+
+export class AuthService {
+  /**
+   * Unified login for both Teacher and Student.
+   * Accepts username OR roll number (for student).
+   */
+  public static async login(identifier: string, password: string): Promise<{
+    token: string;
+    user: {
+      id: string;
+      role: 'student' | 'teacher';
+      username: string;
+      email: string;
+      fullName: string;
+      avatarUrl: string;
+      rollNumber?: string;
+      isDropped?: boolean;
+      droppedReason?: string;
+    };
+  }> {
+    const trimmedId = identifier.trim();
+
+    // 1. Direct match on username or email in db.users (Case insensitive)
+    let user = db.users.find(
+      u => u.username.toLowerCase() === trimmedId.toLowerCase() ||
+           u.email.toLowerCase() === trimmedId.toLowerCase()
+    );
+
+    // 2. If not found, match on student roll number, profile email, or profile username
+    if (!user) {
+      const studentProfile = db.student_profiles.find(
+        p => (p.roll_number && p.roll_number.trim().toLowerCase() === trimmedId.toLowerCase()) ||
+             (p.email && p.email.trim().toLowerCase() === trimmedId.toLowerCase()) ||
+             (p.username && p.username.trim().toLowerCase() === trimmedId.toLowerCase())
+      );
+      if (studentProfile) {
+        user = db.users.find(u => u.id === studentProfile.user_id);
+      }
+    }
+
+    // 3. Fallback: match roll number ignoring formatting differences (e.g. WD-2026-001 vs WD2026001)
+    if (!user) {
+      const cleanId = trimmedId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      if (cleanId.length >= 4) {
+        const studentProfile = db.student_profiles.find(p => {
+          if (!p.roll_number) return false;
+          const cleanRoll = p.roll_number.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+          return cleanRoll === cleanId;
+        });
+        if (studentProfile) {
+          user = db.users.find(u => u.id === studentProfile.user_id);
+        }
+      }
+    }
+
+    if (!user) {
+      throw new Error('Invalid credentials. Please verify your username, roll number, or email and password.');
+    }
+
+    if (!user.is_active) {
+      if (user.is_dropped) {
+        throw new Error(`CLASS EXPULSION NOTICE: Your enrollment has been terminated. ${user.dropped_reason || 'Critical attendance deficit (<65%).'} Contact instructor Sir Tatheer for appeal.`);
+      }
+      throw new Error('Your account is currently disabled. Please contact your instructor.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      throw new Error('Invalid credentials. Please verify your username, roll number, or email and password.');
+    }
+
+    let fullName = user.username;
+    let avatarUrl = '';
+    let rollNumber: string | undefined = undefined;
+
+    if (user.role === 'student') {
+      const sp = db.student_profiles.find(p => p.user_id === user.id);
+      if (sp) {
+        fullName = sp.full_name;
+        avatarUrl = sp.avatar_url;
+        rollNumber = sp.roll_number;
+      }
+    } else {
+      const tp = db.teacher_profiles.find(p => p.user_id === user.id) || db.teacher_profiles[0];
+      if (tp) {
+        fullName = tp.full_name;
+        avatarUrl = tp.avatar_url;
+      }
+    }
+
+    const payload: TokenPayload = {
+      userId: user.id,
+      role: user.role,
+      username: user.username,
+      email: user.email,
+    };
+
+    const token = signToken(payload);
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        role: user.role,
+        username: user.username,
+        email: user.email,
+        fullName,
+        avatarUrl,
+        rollNumber,
+        isDropped: !!user.is_dropped,
+        droppedReason: user.dropped_reason,
+      },
+    };
+  }
+
+  /**
+   * Student Signup (multi-step form completion)
+   */
+  public static async registerStudent(input: StudentSignupInput) {
+    const username = input.username.trim().toLowerCase();
+    const email = input.email.trim().toLowerCase();
+    const rollNumber = input.rollNumber.trim().toUpperCase();
+
+    // 1. Validation for username uniqueness
+    if (db.users.some(u => u.username.toLowerCase() === username)) {
+      throw new Error(`The username "${input.username}" is already taken. Please choose another username.`);
+    }
+
+    // 2. Validation for email uniqueness
+    if (db.users.some(u => u.email.toLowerCase() === email)) {
+      throw new Error(`The email address "${input.email}" is already registered. Please sign in or use another email.`);
+    }
+
+    // 3. Strict unique roll number check: multiple accounts with the same roll number are prohibited!
+    const cleanNewRoll = rollNumber.replace(/[^a-zA-Z0-9]/g, '');
+    const isRollTaken = db.student_profiles.some(p => {
+      if (!p.roll_number) return false;
+      const cleanExisting = p.roll_number.trim().toUpperCase().replace(/[^a-zA-Z0-9]/g, '');
+      return cleanExisting === cleanNewRoll;
+    });
+
+    if (isRollTaken) {
+      throw new Error(`Roll Number "${input.rollNumber.trim()}" is already registered. An account with this roll number already exists. Each student must have a unique institutional roll number.`);
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(input.password, salt);
+
+    const userId = uuidv4();
+    const newUser: User = {
+      id: userId,
+      role: 'student',
+      username,
+      email,
+      password_hash,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const newProfile: StudentProfile = {
+      id: uuidv4(),
+      user_id: userId,
+      full_name: input.fullName.trim(),
+      username,
+      email,
+      mobile_number: input.mobileNumber.trim(),
+      roll_number: rollNumber,
+      avatar_url: input.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(input.fullName)}`,
+      show_on_public_directory: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    db.users.push(newUser);
+    db.student_profiles.push(newProfile);
+    db.save();
+
+    // Send welcome notification
+    await NotificationService.createNotification(
+      userId,
+      'system',
+      'Welcome to SMIT Web Class!',
+      `Hello ${input.fullName}, your student account is active. Start exploring your courses today!`,
+      'course',
+      'course-html'
+    );
+
+    db.logActivity({
+      actor_user_id: userId,
+      event_type: 'STUDENT_REGISTERED',
+      title: 'New Student Enrolled',
+      description: `${input.fullName} joined the class with roll ${rollNumber}.`,
+      reference_type: 'student',
+      reference_id: userId,
+    });
+
+    const token = signToken({
+      userId: newUser.id,
+      role: 'student',
+      username: newUser.username,
+      email: newUser.email,
+    });
+
+    return {
+      token,
+      user: {
+        id: newUser.id,
+        role: newUser.role,
+        username: newUser.username,
+        email: newUser.email,
+        fullName: newProfile.full_name,
+        avatarUrl: newProfile.avatar_url,
+        rollNumber: newProfile.roll_number,
+      },
+    };
+  }
+
+  /**
+   * Get authenticated user profile details
+   */
+  public static async getProfile(userId: string) {
+    const user = db.users.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+
+    if (user.role === 'student') {
+      let profile = db.student_profiles.find(p => p.user_id === userId);
+      if (!profile) {
+        profile = db.student_profiles.find(p => p.email.toLowerCase() === user.email.toLowerCase());
+      }
+      return {
+        id: user.id,
+        role: user.role,
+        username: user.username,
+        email: user.email,
+        is_dropped: !!user.is_dropped || !!profile?.is_dropped,
+        dropped_reason: user.dropped_reason || profile?.dropped_reason,
+        profile: profile || null,
+      };
+    } else {
+      let profile = db.teacher_profiles.find(p => p.user_id === userId) || db.teacher_profiles[0];
+      return {
+        id: user.id,
+        role: user.role,
+        username: user.username,
+        email: user.email,
+        profile: profile || null,
+      };
+    }
+  }
+
+  /**
+   * Update Profile
+   */
+  public static async updateProfile(
+    userId: string,
+    updates: { fullName?: string; mobileNumber?: string; avatarUrl?: string; bio?: string }
+  ) {
+    const user = db.users.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+
+    if (user.role === 'student') {
+      let profile = db.student_profiles.find(p => p.user_id === userId);
+      if (!profile) {
+        profile = db.student_profiles.find(p => p.email.toLowerCase() === user.email.toLowerCase());
+      }
+      if (profile) {
+        if (updates.fullName !== undefined) profile.full_name = updates.fullName;
+        if (updates.mobileNumber !== undefined) profile.mobile_number = updates.mobileNumber;
+        if (updates.avatarUrl !== undefined) profile.avatar_url = updates.avatarUrl;
+        profile.updated_at = new Date().toISOString();
+      } else {
+        profile = {
+          id: uuidv4(),
+          user_id: user.id,
+          full_name: updates.fullName || user.username,
+          username: user.username,
+          email: user.email,
+          mobile_number: updates.mobileNumber || '',
+          roll_number: 'WD-' + user.username.slice(0, 4).toUpperCase(),
+          avatar_url: updates.avatarUrl || '',
+          show_on_public_directory: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        db.student_profiles.push(profile);
+      }
+    } else {
+      const profile = db.teacher_profiles.find(p => p.user_id === userId) || db.teacher_profiles[0];
+      if (profile) {
+        if (updates.fullName !== undefined) profile.full_name = updates.fullName;
+        if (updates.mobileNumber !== undefined) profile.mobile_number = updates.mobileNumber;
+        if (updates.avatarUrl !== undefined) profile.avatar_url = updates.avatarUrl;
+        if (updates.bio !== undefined) profile.bio = updates.bio;
+        profile.updated_at = new Date().toISOString();
+      }
+    }
+
+    db.save();
+    return this.getProfile(userId);
+  }
+
+
+  /**
+   * Change password
+   */
+  public static async changePassword(userId: string, oldPass: string, newPass: string) {
+    const user = db.users.find(u => u.id === userId);
+    if (!user) throw new Error('User not found');
+
+    const isMatch = await bcrypt.compare(oldPass, user.password_hash);
+    if (!isMatch) throw new Error('Current password is incorrect.');
+
+    const salt = await bcrypt.genSalt(10);
+    user.password_hash = await bcrypt.hash(newPass, salt);
+    user.updated_at = new Date().toISOString();
+    db.save();
+    return true;
+  }
+
+  /**
+   * Step 1: Request 5-digit OTP sent to user's Gmail/Email
+   */
+  public static async generatePasswordResetOtp(email: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('Please provide a valid email address.');
+    }
+
+    const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+    if (!user) {
+      throw new Error(`No registered student or instructor account found with the email "${email}". Please verify your email.`);
+    }
+
+    if (user.is_active === false) {
+      throw new Error('This account has been deactivated. Please contact your instructor.');
+    }
+
+    // Generate strict 5-digit numeric OTP (10000 - 99999)
+    const otp = Math.floor(10000 + Math.random() * 90000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+
+    // Invalidate prior unused OTPs for this email
+    db.password_resets.forEach(pr => {
+      if (pr.email && pr.email.toLowerCase() === cleanEmail && !pr.used) {
+        pr.used = true;
+      }
+    });
+
+    const resetRecord: PasswordReset = {
+      id: uuidv4(),
+      user_id: user.id,
+      email: cleanEmail,
+      otp,
+      token: otp,
+      expires_at: expiresAt,
+      used: false,
+      created_at: new Date().toISOString(),
+    };
+
+    db.password_resets.push(resetRecord);
+    db.save();
+
+    // Find display name for professional greeting
+    let userName = user.username;
+    if (user.role === 'student') {
+      const sp = db.student_profiles.find(p => p.user_id === user.id);
+      if (sp) userName = sp.full_name;
+    } else {
+      const tp = db.teacher_profiles.find(p => p.user_id === user.id) || db.teacher_profiles[0];
+      if (tp) userName = tp.full_name;
+    }
+
+    // Send the real email via EmailService
+    const emailResult = await EmailService.sendPasswordResetOtp({
+      to: cleanEmail,
+      otp,
+      userName,
+    });
+
+    return {
+      success: true,
+      message:
+        emailResult.destination && emailResult.destination !== cleanEmail
+          ? `Verification code dispatched to ${emailResult.destination} (Resend Sandbox). Please check your Gmail inbox.`
+          : `A 5-digit verification code has been dispatched to ${cleanEmail}. Please check your Gmail inbox.`,
+      email: cleanEmail,
+      delivered: emailResult.delivered,
+      destination: emailResult.destination || cleanEmail,
+    };
+  }
+
+  /**
+   * Step 2: Verify 5-digit OTP and reset password
+   */
+  public static async verifyOtpAndResetPassword(email: string, otp: string, newPass: string) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otp.trim();
+
+    if (!cleanEmail) {
+      throw new Error('Email is required.');
+    }
+    if (!cleanOtp || cleanOtp.length !== 5 || !/^\d{5}$/.test(cleanOtp)) {
+      throw new Error('Please enter a valid 5-digit verification code.');
+    }
+    if (!newPass || newPass.length < 6) {
+      throw new Error('New password must be at least 6 characters long.');
+    }
+
+    const resetRecord = db.password_resets.find(
+      pr => pr.email && pr.email.toLowerCase() === cleanEmail &&
+            pr.otp === cleanOtp &&
+            !pr.used &&
+            new Date(pr.expires_at).getTime() > Date.now()
+    );
+
+    if (!resetRecord) {
+      throw new Error('Invalid or expired 5-digit verification code. Please request a new code.');
+    }
+
+    const user = db.users.find(u => u.id === resetRecord.user_id || u.email.toLowerCase() === cleanEmail);
+    if (!user) {
+      throw new Error('Associated user account was not found.');
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password_hash = await bcrypt.hash(newPass, salt);
+    user.updated_at = new Date().toISOString();
+
+    // Mark OTP as used
+    resetRecord.used = true;
+
+    db.logActivity({
+      actor_user_id: user.id,
+      event_type: 'USER_PASSWORD_RESET',
+      title: 'Password Reset Via 5-Digit OTP',
+      description: `${user.username} (${user.role}) successfully reset their account password via email verification code.`,
+      reference_type: 'user',
+      reference_id: user.id,
+    });
+
+    db.save();
+
+    return {
+      success: true,
+      message: 'Password updated successfully! You can now sign in with your new credentials.',
+    };
+  }
+}

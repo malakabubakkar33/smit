@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production builds
+dist/
+**/dist/
+
+# Environment secrets (Strictly ignore actual .env files, keep .env.example)
+.env
+.env.*
+.env.local
+**/.env
+**/.env.*
+!**/.env.example
+!*.example
+
+# Logs and OS files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# User uploads & cache
+uploads/
+**/uploads/
+.cache/
